@@ -981,19 +981,6 @@ export class Parser {
     }
 
     private ParseExpListUntilTerminator(): Expr[] {
-        const explist = [];
-        while (this.Peek().Type !== TokenType.Semicolon &&
-            this.Peek().Type !== TokenType.End &&
-            !this.IsAtEnd()) {
-            explist.push(this.ParseExp());
-            if (!this.ConsumeIf(TokenType.Comma)) {
-                break;
-            }
-        }
-        return explist;
-    }
-
-    private ParseExpListUntilTerminator(): Expr[] {
         const explist: Expr[] = [];
         const terminators = [
             TokenType.Semicolon,
@@ -1008,6 +995,16 @@ export class Parser {
             }
         }
         return explist;
+    }
+
+    private ParseBlock(terminators: TokenType[]): Stmt {
+        const Stmts = [];
+        while (!this.IsAtEnd() && !terminators.includes(this.Peek().Type)) {
+            const stmt = this.ParseStatement();
+            Stmts.push(stmt);
+            if (this.Peek().Type === TokenType.Semicolon) this.Consume();
+        }
+        return ast.chunk(Stmts);
     }
 
     private ParseIfStatement(): Stmt {
