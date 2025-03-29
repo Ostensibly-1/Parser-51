@@ -16,7 +16,7 @@ import { TokenRecord } from "./enums.ts";
 
 export enum TokenType {
     // Keywords
-    And, Break, Do, Else, Elseif, End, False, For, Function, If, In, Local, Nil, Not, Or, Repeat, Return, Then, True, Until, While, Self,
+    And, Break, Do, Else, Elseif, End, False, For, Function, If, In, Local, Nil, Not, Or, Repeat, Return, Then, True, Until, While,
 
     // Identifiers and literals
     Identifier, Number, StringLit,
@@ -58,7 +58,7 @@ const KEYWORDS: { [key: string]: TokenType } = {
     'if': TokenType.If, 'in': TokenType.In, 'local': TokenType.Local,
     'nil': TokenType.Nil, 'not': TokenType.Not, 'or': TokenType.Or,
     'repeat': TokenType.Repeat, 'return': TokenType.Return, 'then': TokenType.Then,
-    'true': TokenType.True, 'until': TokenType.Until, 'while': TokenType.While, 'self': TokenType.Self
+    'true': TokenType.True, 'until': TokenType.Until, 'while': TokenType.While
 };
 
 interface Token {
@@ -909,6 +909,11 @@ export class Parser {
         let name: Identifier | null = null;
         if (this.Peek().Type === TokenType.Identifier) {
             name = ast.identifier(this.Consume().Value);
+            if (this.Peek().Type === TokenType.Dot || this.Peek().Type === TokenType.Colon) {
+                const seperator = this.Consume()
+                const methodname = this.Expect(TokenType.Identifier).Value
+                name.name = `${name}${seperator}${methodname}`
+            }
         }
         const params = this.ParseParamList();
         const body = this.ParseBlock([TokenType.End]) as Chunk;
@@ -1340,6 +1345,5 @@ export class Parser {
 
 /**
  * Todo:
- *  Finish parser class
  *  Full scale tests.
  */
