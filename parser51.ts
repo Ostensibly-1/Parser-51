@@ -966,6 +966,16 @@ export class Parser {
 
     private ParseReturnStatement(): Stmt {
         this.Expect(TokenType.Return);
+        const nextToken = this.Peek();
+        if (
+            nextToken.Type === TokenType.Semicolon ||
+            nextToken.Type === TokenType.End ||
+            nextToken.Type === TokenType.Else ||
+            nextToken.Type === TokenType.Elseif ||
+            this.IsAtEnd()
+        ) {
+            return ast.returnStatement([]);
+        }
         const explist = this.ParseExpListUntilTerminator();
         return ast.returnStatement(explist);
     }
@@ -983,16 +993,21 @@ export class Parser {
         return explist;
     }
 
-    private ParseBlock(terminators: TokenType[]): Chunk {
-        const statements: Stmt[] = [];
+    private ParseExpListUntilTerminator(): Expr[] {
+        const explist: Expr[] = [];
+        const terminators = [
+            TokenType.Semicolon,
+            TokenType.End,
+            TokenType.Else,
+            TokenType.Elseif
+        ];
         while (!this.IsAtEnd() && !terminators.includes(this.Peek().Type)) {
-            const stmt = this.ParseStatement();
-            statements.push(stmt);
-            if (this.Peek().Type === TokenType.Semicolon) {
-                this.Consume();
+            explist.push(this.ParseExp());
+            if (!this.ConsumeIf(TokenType.Comma)) {
+                break;
             }
         }
-        return ast.chunk(statements);
+        return explist;
     }
 
     private ParseIfStatement(): Stmt {
@@ -1342,8 +1357,3 @@ export class Parser {
         return exp;
     }
 }
-
-/**
- * Todo:
- *  Full scale tests.
- */
