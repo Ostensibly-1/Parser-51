@@ -1127,6 +1127,12 @@ export class Parser {
                 }
                 this.Expect(TokenType.RightParen);
                 exp = ast.callExpression(method, args);
+            } else if (token.Type === TokenType.LeftBrace) {
+                const args = [this.ParseTableConstructor()]
+                exp = ast.callExpression(exp, args);
+            } else if (token.Type === TokenType.StringLit) {
+                const args = [this.ParseBaseExp()]
+                exp = ast.callExpression(exp, args);
             } else {
                 break;
             }
@@ -1172,23 +1178,6 @@ export class Parser {
             return this.ParseTableConstructor();
         } else {
             throw new Error(`Unexpected token: ${token.Value}`);
-        }
-    }
-
-    private ParseArgs(): Expr[] {
-        const token = this.Peek()
-        if (token.Type == TokenType.LeftParen) {
-            this.Consume()
-            const args = this.ParseExpList()
-            this.Expect(TokenType.RightParen)
-            return args
-        } else if (token.Type == TokenType.LeftBrace) {
-            return (this.ParseTableConstructor() as TableConstructorExpression).fields
-        } else if (token.Type == TokenType.StringLit) {
-            const value = this.Consume().Value
-            return [ast.literal("StringLiteral", value, value)]
-        } else {
-            throw new Error("Expected '(', '{', or string.\n")
         }
     }
 
